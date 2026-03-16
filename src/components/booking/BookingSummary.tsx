@@ -33,11 +33,11 @@ export default function BookingSummary({
         <MapPin className="w-4 h-4 text-[#0057FF] mt-0.5 flex-shrink-0" />
         <div>
           <p className="text-sm font-medium text-[#1E293B]">
-            {trip.route.origin_terminal.city}
+            {trip.route?.origin_terminal?.city || "—"}
           </p>
           <div className="w-px h-3 bg-gray-300 ml-1.5 my-0.5" />
           <p className="text-sm font-medium text-[#1E293B]">
-            {trip.route.destination_terminal.city}
+            {trip.route?.destination_terminal?.city || "—"}
           </p>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function BookingSummary({
       {/* Vehicle Type */}
       <div className="flex items-center gap-3 mb-4">
         <Bus className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <p className="text-sm text-gray-600">{trip.vehicle_type.name}</p>
+        <p className="text-sm text-gray-600">{trip.vehicle_type?.name || "Standard"}</p>
       </div>
 
       <hr className="border-gray-100 mb-4" />

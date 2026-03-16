@@ -44,24 +44,40 @@ export default function TripDetailPage() {
   } = useQuery<TripSearchResult>({
     queryKey: ["trips", tripId],
     queryFn: async () => {
-      // Get basic trip detail (has seats but no nested route)
+      // Get basic trip detail (returns route_id, not nested route)
       const { data: tripData } = await api.get(`/api/v1/trips/${tripId}`);
-      // Search for this trip to get the full route/vehicle_type info
-      const { data: searchResults } = await api.get("/api/v1/routes/search", {
-        params: { date: tripData.departure_date, passengers: 1 },
-      });
-      // Find this specific trip in search results
-      const rich = (searchResults as TripSearchResult[])?.find(
-        (t: TripSearchResult) => t.id === tripId
+      // Fetch the full route using route_id to get terminal info
+      const { data: routeData } = await api.get(
+        `/api/v1/routes/${tripData.route_id}`
       );
-      if (rich) return rich;
-      // Fallback: return basic trip with safe defaults
       return {
-        ...tripData,
-        route: tripData.route || { name: "—", code: "", origin_terminal: { name: "", city: "—", state: "" }, destination_terminal: { name: "", city: "—", state: "" }, distance_km: null, estimated_duration_minutes: null, base_price: tripData.price || 0, currency: "NGN" },
-        vehicle_type: tripData.vehicle_type || { name: "Standard", seat_capacity: tripData.total_seats || 0, amenities: [] },
-        estimated_duration_minutes: tripData.estimated_duration_minutes || null,
-      };
+        id: tripData.id,
+        departure_date: tripData.departure_date,
+        departure_time: tripData.departure_time,
+        status: tripData.status,
+        price: tripData.price,
+        available_seats: tripData.available_seats,
+        total_seats: tripData.total_seats,
+        estimated_duration_minutes:
+          routeData.estimated_duration_minutes ?? null,
+        route: {
+          name: routeData.name,
+          code: routeData.code,
+          origin_terminal: {
+            name: routeData.origin_terminal?.name ?? "",
+            city: routeData.origin_terminal?.city ?? "—",
+          },
+          destination_terminal: {
+            name: routeData.destination_terminal?.name ?? "",
+            city: routeData.destination_terminal?.city ?? "—",
+          },
+        },
+        vehicle_type: {
+          name: "Standard",
+          seat_capacity: tripData.total_seats ?? 0,
+          amenities: [],
+        },
+      } as TripSearchResult;
     },
   });
 
@@ -118,7 +134,7 @@ export default function TripDetailPage() {
       booking.setTrip(trip!);
       booking.clearSeats();
       selectedSeats.forEach((seat) => booking.addSeat(seat));
-      booking.setLockExpiry(data.expires_at || data.lock_expires_at);
+      booking.setLockExpiry(data.locked_until);
 
       router.push("/booking/passengers");
     } catch (err: any) {

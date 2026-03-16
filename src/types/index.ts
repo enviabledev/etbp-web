@@ -103,11 +103,11 @@ export interface TripSearchResult {
       city: string;
     };
   };
-  vehicle_type: {
+  vehicle_type?: {
     name: string;
     seat_capacity: number;
     amenities: string[];
-  };
+  } | null;
   departure_date: string;
   departure_time: string;
   status: TripStatus;

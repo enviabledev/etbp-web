@@ -205,7 +205,7 @@ export default function ConfirmationPage() {
             <div className="flex items-center gap-2 mb-4">
               <Bus className="w-4 h-4 text-gray-400" />
               <span className="text-sm text-gray-600">
-                {detail.trip.vehicle_type.name}
+                {detail.trip.vehicle_type?.name || "Standard"}
               </span>
             </div>
 
