@@ -44,8 +44,24 @@ export default function TripDetailPage() {
   } = useQuery<TripSearchResult>({
     queryKey: ["trips", tripId],
     queryFn: async () => {
-      const { data } = await api.get(`/api/v1/trips/${tripId}`);
-      return data;
+      // Get basic trip detail (has seats but no nested route)
+      const { data: tripData } = await api.get(`/api/v1/trips/${tripId}`);
+      // Search for this trip to get the full route/vehicle_type info
+      const { data: searchResults } = await api.get("/api/v1/routes/search", {
+        params: { date: tripData.departure_date, passengers: 1 },
+      });
+      // Find this specific trip in search results
+      const rich = (searchResults as TripSearchResult[])?.find(
+        (t: TripSearchResult) => t.id === tripId
+      );
+      if (rich) return rich;
+      // Fallback: return basic trip with safe defaults
+      return {
+        ...tripData,
+        route: tripData.route || { name: "—", code: "", origin_terminal: { name: "", city: "—", state: "" }, destination_terminal: { name: "", city: "—", state: "" }, distance_km: null, estimated_duration_minutes: null, base_price: tripData.price || 0, currency: "NGN" },
+        vehicle_type: tripData.vehicle_type || { name: "Standard", seat_capacity: tripData.total_seats || 0, amenities: [] },
+        estimated_duration_minutes: tripData.estimated_duration_minutes || null,
+      };
     },
   });
 
@@ -163,11 +179,11 @@ export default function TripDetailPage() {
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-[#0057FF]" />
               <span className="text-sm font-semibold text-[#1E293B]">
-                {trip.route.origin_terminal.city}
+                {trip.route?.origin_terminal?.city || "—"}
               </span>
               <ArrowRight className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-semibold text-[#1E293B]">
-                {trip.route.destination_terminal.city}
+                {trip.route?.destination_terminal?.city || "—"}
               </span>
             </div>
 
@@ -188,7 +204,7 @@ export default function TripDetailPage() {
             </div>
 
             {/* Duration */}
-            {trip.estimated_duration_minutes > 0 && (
+            {trip.estimated_duration_minutes && trip.estimated_duration_minutes > 0 && (
               <span className="text-sm text-gray-500">
                 ~{formatDuration(trip.estimated_duration_minutes)}
               </span>
