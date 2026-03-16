@@ -42,7 +42,7 @@ export default function CountdownTimer({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresAt, timeLeft, handleExpiry]);
+  }, [expiresAt, handleExpiry]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

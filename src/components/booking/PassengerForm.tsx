@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -50,19 +50,22 @@ export default function PassengerForm({
     }
   }, [isPrimary, user, defaultValues, setValue]);
 
+  // Store onChange in a ref to avoid infinite re-render loop
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
   // Watch all fields and notify parent on change
   const watchedValues = watch();
   useEffect(() => {
     const { first_name, last_name, gender, phone } = watchedValues;
     if (first_name && last_name) {
-      onChange({ first_name, last_name, gender, phone });
+      onChangeRef.current({ first_name, last_name, gender, phone });
     }
   }, [
     watchedValues.first_name,
     watchedValues.last_name,
     watchedValues.gender,
     watchedValues.phone,
-    onChange,
   ]);
 
   const inputClasses =
