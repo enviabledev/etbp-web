@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { Clock, ArrowRight, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-// Trip type from search results (TripSearchResult)
 
 interface TripCardProps {
   trip: any;
@@ -29,9 +28,17 @@ export default function TripCard({ trip }: TripCardProps) {
   const router = useRouter();
 
   const departureTime = trip.departure_time?.slice(0, 5) ?? "--:--";
-  const durationMinutes = trip.duration_minutes ?? 0;
-  const arrivalTime = addDuration(departureTime, durationMinutes);
+  const durationMinutes = trip.estimated_duration_minutes ?? 0;
+  const arrivalTime = durationMinutes > 0 ? addDuration(departureTime, durationMinutes) : "--:--";
   const seatsLeft = trip.available_seats ?? 0;
+
+  const originCity = trip.route?.origin_terminal?.city ?? "—";
+  const destCity = trip.route?.destination_terminal?.city ?? "—";
+  const routeName = trip.route?.name ?? `${originCity} → ${destCity}`;
+  const busType = trip.vehicle_type?.name;
+  const amenities = trip.vehicle_type?.amenities
+    ? Object.keys(trip.vehicle_type.amenities)
+    : [];
 
   const handleSelect = () => {
     router.push(`/trips/${trip.id}`);
@@ -47,33 +54,35 @@ export default function TripCard({ trip }: TripCardProps) {
         <div className="flex items-center gap-4 sm:min-w-[200px]">
           <div className="text-center">
             <p className="text-2xl font-bold text-[#1E293B]">{departureTime}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{trip.origin_terminal ?? trip.origin_name}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{originCity}</p>
           </div>
           <div className="flex flex-col items-center gap-1">
             <ArrowRight className="h-4 w-4 text-gray-300" />
-            <div className="flex items-center gap-1 text-xs text-gray-400">
-              <Clock className="h-3 w-3" />
-              <span>{formatDuration(durationMinutes)}</span>
-            </div>
+            {durationMinutes > 0 && (
+              <div className="flex items-center gap-1 text-xs text-gray-400">
+                <Clock className="h-3 w-3" />
+                <span>{formatDuration(durationMinutes)}</span>
+              </div>
+            )}
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-[#1E293B]">{arrivalTime}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{trip.destination_terminal ?? trip.destination_name}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{destCity}</p>
           </div>
         </div>
 
         {/* Center — route & bus info */}
         <div className="flex-1 sm:px-4">
           <p className="text-sm font-medium text-[#1E293B] mb-2">
-            {trip.route_name ?? `${trip.origin_name} → ${trip.destination_name}`}
+            {routeName}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            {trip.bus_type && (
+            {busType && (
               <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-[#0057FF]">
-                {trip.bus_type}
+                {busType}
               </span>
             )}
-            {trip.amenities?.map((amenity: string) => (
+            {amenities.map((amenity: string) => (
               <span
                 key={amenity}
                 className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600"

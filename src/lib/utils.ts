@@ -16,12 +16,10 @@ export function formatCurrency(
  * formatDate("2026-03-15") → "15 Mar 2026"
  */
 export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr + "T00:00:00");
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-  ];
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  if (!dateStr) return "—";
+  const d = new Date(dateStr.includes("T") ? dateStr : `${dateStr}T00:00:00`);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 /**

@@ -12,7 +12,7 @@ import { useBookingDetail, useCancelBooking } from "@/hooks/queries/useBookings"
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
-  ArrowLeft, Calendar, Clock, Users, Mail, Phone, AlertTriangle, XCircle,
+  ArrowLeft, Calendar, Clock, Users, Mail, Phone, AlertTriangle, XCircle, MapPin, DollarSign,
 } from "lucide-react";
 
 export default function BookingDetailPage() {
@@ -65,9 +65,11 @@ export default function BookingDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="font-semibold text-gray-900 mb-4">Trip Information</h2>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-gray-400" /><div><p className="text-gray-500">Date</p><p className="font-medium">{booking.created_at ? formatDate(booking.created_at) : "—"}</p></div></div>
-                <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-gray-400" /><div><p className="text-gray-500">Amount</p><p className="font-medium">{formatCurrency(booking.total_amount)}</p></div></div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-gray-400" /><div><p className="text-gray-500">Date</p><p className="font-medium">{booking.trip?.departure_date ? formatDate(booking.trip.departure_date) : "—"}</p></div></div>
+                <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-gray-400" /><div><p className="text-gray-500">Time</p><p className="font-medium">{booking.trip?.departure_time?.slice(0, 5) || "—"}</p></div></div>
+                <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-gray-400" /><div><p className="text-gray-500">Route</p><p className="font-medium">{booking.trip?.route?.origin_terminal?.city ?? "—"} → {booking.trip?.route?.destination_terminal?.city ?? "—"}</p></div></div>
+                <div className="flex items-center gap-2"><DollarSign className="h-4 w-4 text-gray-400" /><div><p className="text-gray-500">Amount</p><p className="font-medium">{formatCurrency(booking.total_amount)}</p></div></div>
                 <div className="flex items-center gap-2"><Users className="h-4 w-4 text-gray-400" /><div><p className="text-gray-500">Passengers</p><p className="font-medium">{booking.passenger_count}</p></div></div>
               </div>
             </div>
