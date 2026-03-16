@@ -23,6 +23,8 @@ export interface PassengerInfo {
 export interface ContactInfo {
   email: string;
   phone: string;
+  emergency_name?: string;
+  emergency_phone?: string;
 }
 
 interface BookingState {

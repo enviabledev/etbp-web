@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
-import type { PopularRoute, Trip } from "@/types";
+import type { PopularRoute, TripSearchResult } from "@/types";
 
 export function usePopularRoutes() {
   return useQuery<PopularRoute[]>({
@@ -21,7 +21,7 @@ export interface SearchTripsParams {
 }
 
 export function useSearchTrips(params: SearchTripsParams | null) {
-  return useQuery<Trip[]>({
+  return useQuery<TripSearchResult[]>({
     queryKey: ["routes", "search", params],
     queryFn: async () => {
       if (!params) return [];

@@ -8,6 +8,7 @@ import { useBooking } from "@/contexts/BookingContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PassengerForm from "@/components/booking/PassengerForm";
 import CountdownTimer from "@/components/booking/CountdownTimer";
+import BookingSteps from "@/components/booking/BookingSteps";
 import { ArrowLeft, ArrowRight, Users, Phone, Mail, AlertCircle } from "lucide-react";
 
 interface PassengerFormData {
@@ -60,8 +61,8 @@ export default function PassengersPage() {
   const [contactPhone, setContactPhone] = useState(
     savedContact?.phone || user?.phone || ""
   );
-  const [emergencyName, setEmergencyName] = useState("");
-  const [emergencyPhone, setEmergencyPhone] = useState("");
+  const [emergencyName, setEmergencyName] = useState(savedContact?.emergency_name || "");
+  const [emergencyPhone, setEmergencyPhone] = useState(savedContact?.emergency_phone || "");
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -106,7 +107,12 @@ export default function PassengersPage() {
     }));
 
     setPassengers(passengerList);
-    setContactInfo({ email: contactEmail, phone: contactPhone });
+    setContactInfo({
+      email: contactEmail,
+      phone: contactPhone,
+      emergency_name: emergencyName || undefined,
+      emergency_phone: emergencyPhone || undefined,
+    });
 
     router.push("/booking/review");
   };
@@ -128,6 +134,7 @@ export default function PassengersPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
+      <BookingSteps />
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

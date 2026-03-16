@@ -41,10 +41,11 @@ function MyTripsContent() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await api.get<BookingDetail[]>("/api/v1/bookings", {
+      const { data } = await api.get("/api/v1/bookings", {
         params: { upcoming },
       });
-      setBookings(data);
+      const items = data.items ?? data;
+      setBookings(Array.isArray(items) ? items : []);
     } catch (err: any) {
       setError(
         err?.response?.data?.detail || "Failed to load bookings."

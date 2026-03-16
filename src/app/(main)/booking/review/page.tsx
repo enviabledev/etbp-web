@@ -13,6 +13,7 @@ import PromoCodeInput from "@/components/booking/PromoCodeInput";
 import PaymentMethodSelect from "@/components/booking/PaymentMethodSelect";
 import CountdownTimer from "@/components/booking/CountdownTimer";
 import Button from "@/components/ui/Button";
+import BookingSteps from "@/components/booking/BookingSteps";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
 import { ArrowLeft, Shield } from "lucide-react";
 
@@ -70,8 +71,8 @@ export default function BookingReviewPage() {
           })),
           contact_email: contactInfo?.email || user?.email,
           contact_phone: contactInfo?.phone || user?.phone,
-          emergency_contact_name: (contactInfo as any)?.emergencyName,
-          emergency_contact_phone: (contactInfo as any)?.emergencyPhone,
+          emergency_contact_name: contactInfo?.emergency_name || undefined,
+          emergency_contact_phone: contactInfo?.emergency_phone || undefined,
         };
 
         const booking: any = await createBooking.mutateAsync(bookingData as any);
@@ -82,16 +83,16 @@ export default function BookingReviewPage() {
       // Step 2: Process payment
       if (paymentMethod === "card") {
         const payment: any = await initiatePayment.mutateAsync({
-          booking_id: ref!,
+          booking_reference: ref!,
           method: "card",
           callback_url: `${window.location.origin}/booking/payment`,
-        } as any);
+        });
         // Redirect to Paystack
         if (payment.authorization_url) {
           window.location.href = payment.authorization_url;
         }
       } else if (paymentMethod === "wallet") {
-        await payWithWallet.mutateAsync({ booking_id: ref! } as any);
+        await payWithWallet.mutateAsync({ booking_reference: ref! });
         toast.success( "Payment successful!");
         router.push("/booking/confirmation");
       } else {
@@ -107,6 +108,8 @@ export default function BookingReviewPage() {
   };
 
   return (
+    <>
+    <BookingSteps />
     <div className="max-w-6xl mx-auto px-4 py-8">
       <button onClick={() => router.push("/booking/passengers")} className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary-500 mb-6">
         <ArrowLeft className="h-4 w-4" /> Back to passenger details
@@ -186,5 +189,6 @@ export default function BookingReviewPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

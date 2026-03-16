@@ -8,6 +8,7 @@ import { useBooking } from "@/contexts/BookingContext";
 import { useBookingDetail } from "@/hooks/queries/useBookings";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
 import api from "@/lib/api";
+import BookingSteps from "@/components/booking/BookingSteps";
 import {
   CheckCircle2,
   Copy,
@@ -124,6 +125,7 @@ export default function ConfirmationPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
+      <BookingSteps />
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Success Header */}
         <div className="text-center mb-8">

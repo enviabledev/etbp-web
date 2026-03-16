@@ -5,26 +5,26 @@ import type {
   BookingDetail,
   BookingStatus,
   PaginatedResponse,
-  Payment,
 } from "@/types";
 
 // ── Types ───────────────────────────────────────────────────
 
 interface CreateBookingPayload {
   trip_id: string;
-  seat_ids: string[];
   passengers: {
+    seat_id: string;
     first_name: string;
     last_name: string;
-    email: string;
-    phone: string;
-    seat_id: string;
+    gender?: string;
+    phone?: string;
+    is_primary: boolean;
   }[];
-  contact_email: string;
-  contact_phone: string;
+  contact_email?: string;
+  contact_phone?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
-  payment_method: string;
+  special_requests?: string;
+  promo_code?: string;
 }
 
 interface ApplyPromoPayload {
@@ -39,14 +39,14 @@ interface ApplyPromoResponse {
 
 interface InitiatePaymentPayload {
   booking_reference: string;
-  payment_method: string;
-  callback_url: string;
+  method: string;
+  callback_url?: string;
 }
 
 interface InitiatePaymentResponse {
+  payment_id: string;
   authorization_url: string;
   reference: string;
-  access_code: string;
 }
 
 interface PayWithWalletPayload {
@@ -54,19 +54,22 @@ interface PayWithWalletPayload {
 }
 
 interface PayWithWalletResponse {
-  payment: Payment;
-  message: string;
+  booking_reference: string;
+  amount_paid: number;
+  wallet_balance: number;
+  booking_status: string;
 }
 
 // ── Queries ─────────────────────────────────────────────────
 
-export function useMyBookings(status?: BookingStatus) {
+export function useMyBookings(params?: { status?: BookingStatus; upcoming?: boolean }) {
   return useQuery<PaginatedResponse<Booking>>({
-    queryKey: ["bookings", "mine", status],
+    queryKey: ["bookings", "mine", params],
     queryFn: async () => {
-      const params: Record<string, string> = {};
-      if (status) params.status = status;
-      const { data } = await api.get("/api/v1/bookings", { params });
+      const queryParams: Record<string, string> = {};
+      if (params?.status) queryParams.status = params.status;
+      if (params?.upcoming !== undefined) queryParams.upcoming = String(params.upcoming);
+      const { data } = await api.get("/api/v1/bookings", { params: queryParams });
       return data;
     },
   });
@@ -102,9 +105,11 @@ export function useCreateBooking() {
 export function useCancelBooking() {
   const queryClient = useQueryClient();
 
-  return useMutation<Booking, Error, string>({
-    mutationFn: async (ref) => {
-      const { data } = await api.put(`/api/v1/bookings/${ref}/cancel`);
+  return useMutation<Booking, Error, { ref: string; reason?: string }>({
+    mutationFn: async ({ ref, reason }) => {
+      const { data } = await api.put(`/api/v1/bookings/${ref}/cancel`, {
+        reason: reason || null,
+      });
       return data;
     },
     onSuccess: () => {

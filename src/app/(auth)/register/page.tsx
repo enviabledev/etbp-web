@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "@/contexts/AuthContext";
-import api from "@/lib/api";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 
 const registerSchema = z.object({
@@ -21,10 +19,11 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const { login } = useAuth();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState("");
+
+  const redirectTo = searchParams.get("redirect") ?? "/";
 
   const {
     register: registerField,
@@ -37,18 +36,18 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     setServerError("");
     try {
-      // Register the user
-      await api.post("/api/v1/auth/register", {
+      // Register returns tokens now (auto-login)
+      const { register: registerUser } = await import("@/lib/auth");
+      await registerUser({
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
         password: data.password,
-        ...(data.phone ? { phone: data.phone } : {}),
+        phone: data.phone || "",
       });
 
-      // Auto-login after registration
-      await login(data.email, data.password);
-      router.push("/");
+      // Refresh auth state by doing a full navigation
+      window.location.href = redirectTo;
     } catch (err: any) {
       const responseData = err?.response?.data;
       if (responseData) {
@@ -226,7 +225,7 @@ export default function RegisterPage() {
       <p className="mt-6 text-center text-sm text-gray-500">
         Already have an account?{" "}
         <Link
-          href="/login"
+          href={`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
           className="font-medium text-[#0057FF] hover:text-[#0047D6]"
         >
           Sign in

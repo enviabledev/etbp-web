@@ -11,6 +11,7 @@ import type { TripSearchResult, SeatMapResponse } from "@/types";
 import SeatMap from "@/components/booking/SeatMap";
 import SeatLegend from "@/components/booking/SeatLegend";
 import BookingSummary from "@/components/booking/BookingSummary";
+import BookingSteps from "@/components/booking/BookingSteps";
 import {
   MapPin,
   Calendar,
@@ -187,6 +188,7 @@ export default function TripDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
+      <BookingSteps />
       {/* Trip Summary Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-4">

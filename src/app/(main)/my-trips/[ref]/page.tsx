@@ -31,7 +31,7 @@ export default function BookingDetailPage() {
 
   const handleCancel = () => {
     cancelMutation.mutate(
-      ref,
+      { ref, reason: cancelReason || undefined },
       {
         onSuccess: (data: any) => {
           setShowCancel(false);

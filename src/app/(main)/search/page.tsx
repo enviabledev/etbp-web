@@ -4,8 +4,6 @@ export const dynamic = "force-dynamic";
 
 import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import SearchBar from "@/components/search/SearchBar";
 import TripCard from "@/components/search/TripCard";
 import { useSearchTrips, type SearchTripsParams } from "@/hooks/queries/useRoutes";
@@ -167,20 +165,16 @@ function SearchResultsContent() {
 
 export default function SearchPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
-      <Navbar />
-      <main className="flex-1">
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-[#0057FF]" />
-            </div>
-          }
-        >
-          <SearchResultsContent />
-        </Suspense>
-      </main>
-      <Footer />
+    <div className="bg-[#F8FAFC]">
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-[#0057FF]" />
+          </div>
+        }
+      >
+        <SearchResultsContent />
+      </Suspense>
     </div>
   );
 }
