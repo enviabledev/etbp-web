@@ -42,12 +42,18 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
   const toast = useToast();
   const [cancelling, setCancelling] = useState(false);
 
-  const { trip, booking_reference, status, passenger_count, total_amount, currency } = booking;
-  const origin = trip.route.origin_terminal.city;
-  const destination = trip.route.destination_terminal.city;
+  const bookingRef = booking.booking_reference || booking.reference;
+  const status = booking.status;
+  const passenger_count = booking.passenger_count;
+  const total_amount = booking.total_amount;
+  const currency = booking.currency;
+  const trip = booking.trip;
+  const origin = trip?.route?.origin_terminal?.city || "—";
+  const destination = trip?.route?.destination_terminal?.city || "—";
 
-  const isUpcoming =
-    new Date(`${trip.departure_date}T${trip.departure_time}`) > new Date();
+  const isUpcoming = trip
+    ? new Date(`${trip.departure_date}T${trip.departure_time}`) > new Date()
+    : false;
   const isCancellable =
     isUpcoming && (status === "confirmed" || status === "pending");
 
@@ -59,7 +65,7 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
 
     setCancelling(true);
     try {
-      await api.post(`/api/v1/bookings/${booking_reference}/cancel`);
+      await api.put(`/api/v1/bookings/${bookingRef}/cancel`, { reason: null });
       toast.success("Booking cancelled successfully.");
       onCancelled?.();
     } catch (err: any) {
@@ -88,11 +94,11 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-gray-600 mb-4">
         <div className="flex items-center gap-1.5">
           <Calendar className="h-4 w-4 text-gray-400" />
-          <span>{formatDate(trip.departure_date)}</span>
+          <span>{trip ? formatDate(trip.departure_date) : "—"}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Clock className="h-4 w-4 text-gray-400" />
-          <span>{formatTime(trip.departure_time)}</span>
+          <span>{trip ? formatTime(trip.departure_time) : "—"}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Users className="h-4 w-4 text-gray-400" />
@@ -103,7 +109,7 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
         <div className="flex items-center gap-1.5">
           <Hash className="h-4 w-4 text-gray-400" />
           <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">
-            {booking_reference}
+            {bookingRef}
           </span>
         </div>
       </div>
@@ -125,7 +131,7 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
             </button>
           )}
           <Link
-            href={`/my-trips/${booking_reference}`}
+            href={`/my-trips/${bookingRef}`}
             className="inline-flex items-center rounded-lg bg-[#0057FF] px-4 py-2 text-sm font-medium text-white hover:bg-[#0046CC] transition-colors"
           >
             View Details

@@ -179,11 +179,11 @@ export default function ConfirmationPage() {
             <div className="flex items-center gap-3 mb-3">
               <MapPin className="w-4 h-4 text-[#0057FF] flex-shrink-0" />
               <span className="text-sm font-medium text-[#1E293B]">
-                {detail.trip.route.origin_terminal.city}
+                {detail.trip?.route?.origin_terminal?.city || "—"}
               </span>
               <ArrowRight className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-medium text-[#1E293B]">
-                {detail.trip.route.destination_terminal.city}
+                {detail.trip?.route?.destination_terminal?.city || "—"}
               </span>
             </div>
 
@@ -192,13 +192,13 @@ export default function ConfirmationPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {formatDate(detail.trip.departure_date)}
+                  {detail.trip ? formatDate(detail.trip.departure_date) : "—"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {formatTime(detail.trip.departure_time)}
+                  {detail.trip ? formatTime(detail.trip.departure_time) : "—"}
                 </span>
               </div>
             </div>
@@ -230,7 +230,7 @@ export default function ConfirmationPage() {
                   <div className="flex items-center gap-1.5">
                     <Armchair className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-sm font-medium text-[#1E293B]">
-                      {passenger.seat_number}
+                      {passenger.seat_number || "—"}
                     </span>
                   </div>
                 </div>
@@ -244,16 +244,16 @@ export default function ConfirmationPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
                 <span className="text-[#1E293B]">
-                  {formatCurrency(detail.total_amount + detail.promo_discount)}
+                  {formatCurrency(detail.total_amount + (detail.promo_discount || 0))}
                 </span>
               </div>
-              {detail.promo_discount > 0 && (
+              {(detail.promo_discount || 0) > 0 && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-[#059669]">
-                    Promo ({detail.promo_code})
+                    Promo ({detail.promo_code || "Applied"})
                   </span>
                   <span className="text-[#059669]">
-                    -{formatCurrency(detail.promo_discount)}
+                    -{formatCurrency(detail.promo_discount || 0)}
                   </span>
                 </div>
               )}
@@ -267,7 +267,7 @@ export default function ConfirmationPage() {
               </div>
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>Payment method</span>
-                <span className="capitalize">{detail.payment_method}</span>
+                <span className="capitalize">{detail.payment_method || "Pending"}</span>
               </div>
             </div>
           </div>

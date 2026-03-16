@@ -43,9 +43,16 @@ function TopUpModal({
 
     setLoading(true);
     try {
-      await api.post("/api/v1/payments/wallet/topup", { amount: num });
+      const { data } = await api.post("/api/v1/payments/wallet/topup", {
+        amount: num,
+        callback_url: `${window.location.origin}/wallet?topup=success`,
+      });
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url;
+        return;
+      }
       toast.success(
-        `Top-up of ${formatCurrency(num)} initiated. You will be redirected to complete payment.`
+        `Top-up of ${formatCurrency(num)} initiated.`
       );
       onClose();
     } catch (err: any) {
@@ -175,7 +182,7 @@ function WalletContent() {
     setLoading(true);
     try {
       const [walletRes, txRes] = await Promise.allSettled([
-        api.get<WalletType>("/api/v1/payments/wallet"),
+        api.get<WalletType>("/api/v1/payments/wallet/balance"),
         api.get<WalletTransaction[]>("/api/v1/payments/wallet/transactions"),
       ]);
 

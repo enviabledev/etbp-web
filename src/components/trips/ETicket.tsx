@@ -15,9 +15,10 @@ export default function ETicket({ booking }: ETicketProps) {
   const toast = useToast();
   const [downloading, setDownloading] = useState(false);
 
-  const { booking_reference, trip, passengers } = booking;
-  const origin = trip.route.origin_terminal;
-  const destination = trip.route.destination_terminal;
+  const booking_reference = booking.booking_reference || booking.reference;
+  const { trip, passengers } = booking;
+  const origin = trip?.route?.origin_terminal;
+  const destination = trip?.route?.destination_terminal;
 
   // Placeholder QR data text
   const qrCodeData = `ETBP-${booking_reference}`;
@@ -120,24 +121,24 @@ export default function ETicket({ booking }: ETicketProps) {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-gray-500">From</p>
-              <p className="font-semibold text-[#1E293B]">{origin.city}</p>
-              <p className="text-xs text-gray-400">{origin.name}</p>
+              <p className="font-semibold text-[#1E293B]">{origin?.city || "—"}</p>
+              <p className="text-xs text-gray-400">{origin?.name || ""}</p>
             </div>
             <div>
               <p className="text-gray-500">To</p>
-              <p className="font-semibold text-[#1E293B]">{destination.city}</p>
-              <p className="text-xs text-gray-400">{destination.name}</p>
+              <p className="font-semibold text-[#1E293B]">{destination?.city || "—"}</p>
+              <p className="text-xs text-gray-400">{destination?.name || ""}</p>
             </div>
             <div>
               <p className="text-gray-500">Date</p>
               <p className="font-semibold text-[#1E293B]">
-                {formatDate(trip.departure_date)}
+                {trip ? formatDate(trip.departure_date) : "—"}
               </p>
             </div>
             <div>
               <p className="text-gray-500">Time</p>
               <p className="font-semibold text-[#1E293B]">
-                {formatTime(trip.departure_time)}
+                {trip ? formatTime(trip.departure_time) : "—"}
               </p>
             </div>
           </div>

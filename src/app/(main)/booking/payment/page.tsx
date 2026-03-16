@@ -31,7 +31,7 @@ export default function PaymentCallbackPage() {
             `/api/v1/payments/verify/${reference}`
           );
 
-          if (data.status === "completed" || data.status === "success") {
+          if (data.status === "completed" || data.status === "success" || data.status === "successful") {
             setStatus("success");
             // Navigate to confirmation after a brief pause
             setTimeout(() => {

@@ -183,8 +183,24 @@ export interface Booking {
   updated_at: string;
 }
 
+export interface BookingTrip {
+  id: string;
+  departure_date: string;
+  departure_time: string;
+  status: string;
+  price: number;
+  route?: {
+    id?: string;
+    name?: string;
+    code?: string;
+    origin_terminal?: { id?: string; name?: string; code?: string; city: string; state?: string };
+    destination_terminal?: { id?: string; name?: string; code?: string; city: string; state?: string };
+  };
+  vehicle_type?: { name: string } | null;
+}
+
 export interface BookingDetail extends Booking {
-  trip: TripSearchResult;
+  trip: BookingTrip;
   passengers: BookingPassenger[];
   payment: Payment | null;
   emergency_contact_name?: string | null;
