@@ -13,6 +13,7 @@ export default function PaymentCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference");
+  const bookingRef = searchParams.get("booking_ref");
   const [status, setStatus] = useState<PaymentStatus>("processing");
   const [errorMessage, setErrorMessage] = useState("");
   const pollingRef = useRef(false);
@@ -34,9 +35,9 @@ export default function PaymentCallbackPage() {
           if (data.status === "completed" || data.status === "success" || data.status === "successful") {
             setStatus("success");
             // Navigate to confirmation after a brief pause
-            const bookingRef = data.booking_reference || data.booking_id || "";
+            const ref = bookingRef || data.booking_reference || "";
             setTimeout(() => {
-              router.push(`/booking/confirmation${bookingRef ? `?ref=${bookingRef}` : ""}`);
+              router.push(`/booking/confirmation${ref ? `?ref=${ref}` : ""}`);
             }, 1500);
             return;
           }

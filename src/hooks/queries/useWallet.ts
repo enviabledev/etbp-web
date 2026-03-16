@@ -9,6 +9,7 @@ export function useWallet() {
       const { data } = await api.get("/api/v1/payments/wallet/balance");
       return data;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
+    retry: false,
   });
 }

@@ -85,7 +85,7 @@ export default function BookingReviewPage() {
         const payment: any = await initiatePayment.mutateAsync({
           booking_reference: ref!,
           method: "card",
-          callback_url: `${window.location.origin}/booking/payment`,
+          callback_url: `${window.location.origin}/booking/payment?booking_ref=${encodeURIComponent(ref!)}`,
         });
         // Redirect to Paystack
         if (payment.authorization_url) {
