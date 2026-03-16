@@ -76,7 +76,7 @@ export default function BookingReviewPage() {
         };
 
         const booking: any = await createBooking.mutateAsync(bookingData as any);
-        ref = booking.reference;
+        ref = booking.reference || booking.booking_reference;
         setBookingRef(ref!);
       }
 
@@ -94,11 +94,11 @@ export default function BookingReviewPage() {
       } else if (paymentMethod === "wallet") {
         await payWithWallet.mutateAsync({ booking_reference: ref! });
         toast.success( "Payment successful!");
-        router.push("/booking/confirmation");
+        router.push(`/booking/confirmation?ref=${ref}`);
       } else {
         // Pay at terminal — booking stays pending
         toast.info( "Booking created. Please pay at the terminal before departure.");
-        router.push("/booking/confirmation");
+        router.push(`/booking/confirmation?ref=${ref}`);
       }
     } catch (err: any) {
       toast.error( err?.response?.data?.detail || "Failed to process booking");

@@ -34,8 +34,9 @@ export default function PaymentCallbackPage() {
           if (data.status === "completed" || data.status === "success" || data.status === "successful") {
             setStatus("success");
             // Navigate to confirmation after a brief pause
+            const bookingRef = data.booking_reference || data.booking_id || "";
             setTimeout(() => {
-              router.push("/booking/confirmation");
+              router.push(`/booking/confirmation${bookingRef ? `?ref=${bookingRef}` : ""}`);
             }, 1500);
             return;
           }
