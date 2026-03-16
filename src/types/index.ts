@@ -6,8 +6,12 @@ export interface User {
   phone: string;
   first_name: string;
   last_name: string;
-  role: "customer" | "admin" | "driver" | "agent";
+  role: "customer" | "admin" | "driver" | "agent" | "super_admin" | "fleet_manager";
   avatar_url: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
   is_active: boolean;
   created_at: string;
 }

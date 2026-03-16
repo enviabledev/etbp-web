@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   ChevronDown,
   HelpCircle,
   Send,
   MessageSquare,
   Loader2,
+  LogIn,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
 // ── FAQ Data ─────────────────────────────────────────────────
@@ -110,6 +113,7 @@ function AccordionItem({
 }
 
 export default function SupportPage() {
+  const { isAuthenticated } = useAuth();
   const toast = useToast();
   const [category, setCategory] = useState("");
   const [subject, setSubject] = useState("");
@@ -207,6 +211,15 @@ export default function SupportPage() {
             </h2>
           </div>
 
+          {!isAuthenticated ? (
+            <div className="text-center py-8">
+              <LogIn className="h-8 w-8 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-gray-500 mb-4">Please log in to submit a support ticket.</p>
+              <Link href="/login?redirect=/support" className="text-sm font-medium text-[#0057FF] hover:underline">
+                Log in
+              </Link>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
@@ -279,6 +292,7 @@ export default function SupportPage() {
               {submitting ? "Submitting..." : "Submit Ticket"}
             </button>
           </form>
+          )}
         </div>
       </div>
     </div>

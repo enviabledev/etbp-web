@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ETBP - Book Your Trip",
+  title: "Enviable Transport - Book Bus Tickets Online",
   description:
-    "Book affordable and comfortable bus trips across Nigeria with ETBP.",
+    "Book affordable and comfortable bus trips across Nigeria with Enviable Transport.",
 };
 
 export default function RootLayout({

@@ -38,10 +38,10 @@ function ProfileContent() {
         first_name: user.first_name || "",
         last_name: user.last_name || "",
         phone: user.phone || "",
-        date_of_birth: (user as any).date_of_birth || "",
-        gender: (user as any).gender || "",
-        emergency_contact_name: (user as any).emergency_contact_name || "",
-        emergency_contact_phone: (user as any).emergency_contact_phone || "",
+        date_of_birth: user.date_of_birth || "",
+        gender: user.gender || "",
+        emergency_contact_name: user.emergency_contact_name || "",
+        emergency_contact_phone: user.emergency_contact_phone || "",
       });
     }
   }, [user]);
@@ -192,7 +192,6 @@ function ProfileContent() {
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="other">Other</option>
-                  <option value="prefer_not_to_say">Prefer not to say</option>
                 </select>
               </div>
             </div>
