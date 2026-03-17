@@ -162,7 +162,7 @@ function TopUpModal({
 }
 
 function TransactionRow({ tx }: { tx: WalletTransaction }) {
-  const isCredit = tx.type === "credit";
+  const isCredit = ["top_up", "credit", "refund", "cashback"].includes(tx.type);
   const Icon = isCredit ? ArrowDownLeft : ArrowUpRight;
 
   return (
