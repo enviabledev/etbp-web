@@ -6,6 +6,8 @@ import AuthGuard from "@/components/layout/AuthGuard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateProfile } from "@/hooks/queries/useProfile";
 import { useToast } from "@/components/ui/Toast";
+import PhoneInput from "@/components/ui/PhoneInput";
+import OTPVerificationModal from "@/components/ui/OTPVerificationModal";
 
 interface ProfileForm {
   first_name: string;
@@ -21,6 +23,7 @@ function ProfileContent() {
   const { user } = useAuth();
   const updateProfile = useUpdateProfile();
   const toast = useToast();
+  const [showOTP, setShowOTP] = useState(false);
 
   const [form, setForm] = useState<ProfileForm>({
     first_name: "",
@@ -52,20 +55,32 @@ function ProfileContent() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
+  const phoneChanged = form.phone !== (user?.phone || "") && form.phone.length > 4;
+
+  async function doSave() {
+    await updateProfile.mutateAsync({
+      first_name: form.first_name,
+      last_name: form.last_name,
+      phone: form.phone,
+      date_of_birth: form.date_of_birth || null,
+      gender: form.gender || null,
+      emergency_contact_name: form.emergency_contact_name || null,
+      emergency_contact_phone: form.emergency_contact_phone || null,
+    });
+    toast.success("Profile updated successfully.");
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    // If phone changed, require OTP verification first
+    if (phoneChanged) {
+      setShowOTP(true);
+      return;
+    }
+
     try {
-      await updateProfile.mutateAsync({
-        first_name: form.first_name,
-        last_name: form.last_name,
-        phone: form.phone,
-        date_of_birth: form.date_of_birth || null,
-        gender: form.gender || null,
-        emergency_contact_name: form.emergency_contact_name || null,
-        emergency_contact_phone: form.emergency_contact_phone || null,
-      });
-      toast.success("Profile updated successfully.");
+      await doSave();
     } catch (err: any) {
       toast.error(
         err?.response?.data?.detail || "Failed to update profile."
@@ -150,18 +165,12 @@ function ProfileContent() {
                 />
               </div>
               <div>
-                <label htmlFor="phone" className={labelClass}>
-                  Phone Number
-                </label>
-                <input
+                <PhoneInput
                   id="phone"
-                  name="phone"
-                  type="tel"
+                  label="Phone Number"
                   required
                   value={form.phone}
-                  onChange={handleChange}
-                  className={inputClass}
-                  placeholder="+234 800 000 0000"
+                  onChange={(v) => setForm((prev) => ({ ...prev, phone: v }))}
                 />
               </div>
               <div>
@@ -248,6 +257,16 @@ function ProfileContent() {
             {updateProfile.isPending ? "Saving..." : "Save Changes"}
           </button>
         </form>
+
+        <OTPVerificationModal
+          open={showOTP}
+          phone={form.phone}
+          onVerified={async () => {
+            setShowOTP(false);
+            try { await doSave(); } catch (err: any) { toast.error(err?.response?.data?.detail || "Failed to update profile."); }
+          }}
+          onClose={() => setShowOTP(false)}
+        />
       </div>
     </div>
   );

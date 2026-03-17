@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/contexts/AuthContext";
+import PhoneInput from "@/components/ui/PhoneInput";
 
 interface PassengerFormData {
   first_name: string;
@@ -143,15 +144,11 @@ export default function PassengerForm({
 
         {/* Phone */}
         <div>
-          <label htmlFor={`passenger-${index}-phone`} className={labelClasses}>
-            Phone Number
-          </label>
-          <input
+          <PhoneInput
             id={`passenger-${index}-phone`}
-            type="tel"
-            placeholder="e.g. 08012345678"
-            className={inputClasses}
-            {...register("phone")}
+            label="Phone Number"
+            value={watch("phone") || ""}
+            onChange={(v) => setValue("phone", v)}
           />
         </div>
       </div>
