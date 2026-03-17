@@ -33,7 +33,20 @@ export default function TripDetailPage() {
     ? parseInt(searchParams.get("passengers")!, 10)
     : 0; // 0 = unlimited
 
-  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
+  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>(() => {
+    // Restore saved seat selection after login redirect
+    try {
+      const pending = sessionStorage.getItem("pendingSeats");
+      if (pending) {
+        const parsed = JSON.parse(pending);
+        if (parsed.tripId === tripId && Array.isArray(parsed.seatIds)) {
+          sessionStorage.removeItem("pendingSeats");
+          return parsed.seatIds;
+        }
+      }
+    } catch {}
+    return [];
+  });
   const [lockError, setLockError] = useState<string | null>(null);
   const [isLocking, setIsLocking] = useState(false);
 
@@ -115,9 +128,19 @@ export default function TripDetailPage() {
     [maxPassengers]
   );
 
+  // Auth prompt state
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+
   const handleContinue = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?redirect=/trips/${tripId}`);
+      // Save selected seats so they persist across login redirect
+      try {
+        sessionStorage.setItem("pendingSeats", JSON.stringify({
+          tripId,
+          seatIds: selectedSeatIds,
+        }));
+      } catch {}
+      setShowAuthPrompt(true);
       return;
     }
 
@@ -320,6 +343,33 @@ export default function TripDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Auth prompt modal */}
+      {showAuthPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAuthPrompt(false)} />
+          <div className="relative bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center">
+            <h3 className="text-lg font-bold text-[#1E293B] mb-2">Login to continue</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Please login or create an account to complete your booking. Your seat selection will be saved.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => router.push(`/login?redirect=/trips/${tripId}`)}
+                className="flex-1 rounded-lg border border-[#0057FF] px-4 py-2.5 text-sm font-medium text-[#0057FF] hover:bg-[#0057FF]/5 transition-colors"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => router.push(`/register?redirect=/trips/${tripId}`)}
+                className="flex-1 rounded-lg bg-[#0057FF] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0046cc] transition-colors"
+              >
+                Register
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -35,8 +35,16 @@ export default function PassengersPage() {
   useEffect(() => {
     if (!selectedTrip || selectedSeats.length === 0) {
       router.push("/");
+      return;
     }
-  }, [selectedTrip, selectedSeats, router]);
+    // Check if seat lock has expired
+    if (lockExpiresAt) {
+      const expiry = new Date(lockExpiresAt).getTime();
+      if (expiry < Date.now()) {
+        router.push(`/trips/${selectedTrip.id}`);
+      }
+    }
+  }, [selectedTrip, selectedSeats, lockExpiresAt, router]);
 
   // Passenger data state
   const [passengerData, setPassengerData] = useState<
