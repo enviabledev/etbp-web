@@ -9,6 +9,7 @@ import {
   RotateCcw,
   X,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import AuthGuard from "@/components/layout/AuthGuard";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
@@ -31,6 +32,7 @@ function TopUpModal({
   const toast = useToast();
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const presets = [1000, 2000, 5000, 10000, 20000, 50000];
 
@@ -64,21 +66,50 @@ function TopUpModal({
     }
   }
 
+  const handleClose = () => {
+    setAmount("");
+    setAgreed(false);
+    onClose();
+  };
+
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
       <div className="relative bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold text-[#1E293B]">Top Up Wallet</h3>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Non-refundable warning */}
+        <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-4">
+          <div className="flex gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-800">Non-Refundable</p>
+              <p className="text-xs text-amber-700 mt-1">
+                Wallet top-ups cannot be withdrawn or refunded to your original payment method. Funds can only be used for booking trips.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <label className="flex items-start gap-2 mb-4 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-[#0057FF] focus:ring-[#0057FF]"
+          />
+          <span className="text-sm text-gray-600">I understand that wallet top-ups are non-refundable</span>
+        </label>
 
         {/* Amount input */}
         <div className="mb-4">
@@ -120,7 +151,7 @@ function TopUpModal({
 
         <button
           onClick={handleTopUp}
-          disabled={loading || !amount}
+          disabled={loading || !amount || !agreed}
           className="w-full rounded-lg bg-[#0057FF] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0046CC] transition-colors disabled:opacity-50"
         >
           {loading ? "Processing..." : "Top Up"}
