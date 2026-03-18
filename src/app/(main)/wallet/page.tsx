@@ -15,6 +15,7 @@ import AuthGuard from "@/components/layout/AuthGuard";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import api from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import { QRCodeSVG } from "qrcode.react";
 import type { Wallet as WalletType, WalletTransaction } from "@/types";
 
 interface WalletData {
@@ -161,6 +162,77 @@ function TopUpModal({
   );
 }
 
+function PayAtCounterModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const toast = useToast();
+  const [qrData, setQrData] = useState("");
+  const [expiresIn, setExpiresIn] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  async function generate() {
+    setLoading(true);
+    try {
+      const { data } = await api.post("/api/v1/payments/wallet/payment-qr", {});
+      setQrData(data.qr_data);
+      setExpiresIn(data.expires_in || 300);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Failed to generate QR");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (open) generate();
+    return () => { setQrData(""); setExpiresIn(0); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  useEffect(() => {
+    if (expiresIn <= 0) return;
+    const timer = setInterval(() => {
+      setExpiresIn(prev => {
+        if (prev <= 1) { generate(); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expiresIn]);
+
+  if (!open) return null;
+
+  const mins = Math.floor(expiresIn / 60).toString().padStart(2, "0");
+  const secs = (expiresIn % 60).toString().padStart(2, "0");
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-[#1E293B]">Pay at Counter</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
+        </div>
+
+        {loading ? (
+          <div className="py-12"><Loader2 className="h-8 w-8 animate-spin text-[#0057FF] mx-auto" /></div>
+        ) : qrData ? (
+          <>
+            <div className="flex justify-center mb-4">
+              <QRCodeSVG value={qrData} size={200} />
+            </div>
+            <p className="text-sm text-gray-500 mb-2">Show this to the agent at the counter</p>
+            <p className="text-2xl font-bold font-mono text-[#0057FF]">{mins}:{secs}</p>
+            <p className="text-xs text-gray-400 mt-1">Auto-refreshes when expired</p>
+            <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
+              <p className="text-xs text-amber-700">Do not share this code. It authorizes a payment from your wallet.</p>
+            </div>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function TransactionRow({ tx }: { tx: WalletTransaction }) {
   const isCredit = ["top_up", "credit", "refund", "cashback"].includes(tx.type);
   const Icon = isCredit ? ArrowDownLeft : ArrowUpRight;
@@ -208,6 +280,7 @@ function WalletContent() {
   const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
   const [topUpOpen, setTopUpOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
 
   async function fetchWallet() {
     setLoading(true);
@@ -278,6 +351,12 @@ function WalletContent() {
             <Plus className="h-4 w-4" />
             Top Up
           </button>
+          <button
+            onClick={() => setPayOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-white/20 backdrop-blur-sm px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/30 transition-colors"
+          >
+            Pay at Counter
+          </button>
         </div>
 
         {/* Transaction history */}
@@ -307,6 +386,7 @@ function WalletContent() {
       </div>
 
       <TopUpModal open={topUpOpen} onClose={() => setTopUpOpen(false)} />
+      <PayAtCounterModal open={payOpen} onClose={() => setPayOpen(false)} />
     </div>
   );
 }
