@@ -10,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -133,6 +134,11 @@ export default function LoginPage() {
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
+
+      <SocialLoginButtons
+        redirectTo={redirectTo}
+        onError={(msg) => setServerError(msg)}
+      />
 
       <p className="mt-6 text-center text-sm text-gray-500">
         Don&apos;t have an account?{" "}

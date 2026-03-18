@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -22,11 +23,15 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <AuthProvider>
-          <BookingProvider>{children}</BookingProvider>
-        </AuthProvider>
-      </ToastProvider>
+      <GoogleOAuthProvider
+        clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+      >
+        <ToastProvider>
+          <AuthProvider>
+            <BookingProvider>{children}</BookingProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </GoogleOAuthProvider>
     </QueryClientProvider>
   );
 }

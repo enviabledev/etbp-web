@@ -9,6 +9,7 @@ import { z } from "zod";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import PhoneInput from "@/components/ui/PhoneInput";
 import OTPVerificationModal from "@/components/ui/OTPVerificationModal";
+import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 const registerSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -163,6 +164,11 @@ export default function RegisterPage() {
           {isSubmitting ? "Creating account..." : phone ? "Verify & Register" : "Create account"}
         </button>
       </form>
+
+      <SocialLoginButtons
+        redirectTo={redirectTo}
+        onError={(msg) => setServerError(msg)}
+      />
 
       <p className="mt-6 text-center text-sm text-gray-500">
         Already have an account?{" "}
