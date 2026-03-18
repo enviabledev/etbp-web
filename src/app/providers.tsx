@@ -6,20 +6,22 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { ToastProvider } from "@/components/ui/Toast";
+import { setQueryClient } from "@/lib/firebase";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            refetchOnWindowFocus: false,
-            retry: 1,
-            staleTime: 30 * 1000,
-          },
+  const [queryClient] = useState(() => {
+    const qc = new QueryClient({
+      defaultOptions: {
+        queries: {
+          refetchOnWindowFocus: false,
+          retry: 1,
+          staleTime: 30 * 1000,
         },
-      })
-  );
+      },
+    });
+    setQueryClient(qc);
+    return qc;
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
