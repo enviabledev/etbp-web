@@ -25,12 +25,13 @@ export default function BookingDetailPage() {
   const { data: booking, isLoading } = useBookingDetail(ref);
   const cancelMutation = useCancelBooking();
 
+  const showDeadline = !isLoading && booking?.status === "pending" && booking?.payment_method_hint === "pay_at_terminal" && booking?.payment_deadline;
+  const countdown = useCountdown(showDeadline ? booking!.payment_deadline : null);
+
   if (isLoading) return <AuthGuard><div className="max-w-4xl mx-auto px-4 py-8"><LoadingSpinner /></div></AuthGuard>;
   if (!booking) return <AuthGuard><div className="max-w-4xl mx-auto px-4 py-16 text-center"><p className="text-gray-500">Booking not found</p></div></AuthGuard>;
 
   const isCancellable = ["confirmed", "pending"].includes(booking.status);
-  const showDeadline = booking.status === "pending" && booking.payment_method_hint === "pay_at_terminal" && booking.payment_deadline;
-  const countdown = useCountdown(showDeadline ? booking.payment_deadline : null);
 
   const handleCancel = () => {
     cancelMutation.mutate(
