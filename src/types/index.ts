@@ -74,7 +74,7 @@ export type TripStatus =
   | "scheduled"
   | "boarding"
   | "departed"
-  | "in_transit"
+  | "en_route"
   | "arrived"
   | "completed"
   | "cancelled"

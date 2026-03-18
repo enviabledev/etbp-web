@@ -65,7 +65,7 @@ export const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   scheduled:  { bg: "bg-blue-100",   text: "text-blue-700" },
   boarding:   { bg: "bg-amber-100",  text: "text-amber-700" },
   departed:   { bg: "bg-indigo-100", text: "text-indigo-700" },
-  in_transit: { bg: "bg-purple-100", text: "text-purple-700" },
+  en_route:   { bg: "bg-purple-100", text: "text-purple-700" },
   arrived:    { bg: "bg-teal-100",   text: "text-teal-700" },
   completed:  { bg: "bg-green-100",  text: "text-green-700" },
   cancelled:  { bg: "bg-red-100",    text: "text-red-700" },
