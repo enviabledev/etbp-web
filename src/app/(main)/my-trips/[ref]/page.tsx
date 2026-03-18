@@ -12,8 +12,9 @@ import { useBookingDetail, useCancelBooking } from "@/hooks/queries/useBookings"
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
-  ArrowLeft, Calendar, Clock, Users, Mail, Phone, AlertTriangle, XCircle, MapPin, DollarSign,
+  ArrowLeft, Calendar, Clock, Users, Mail, Phone, AlertTriangle, XCircle, MapPin, DollarSign, Timer,
 } from "lucide-react";
+import { useCountdown } from "@/hooks/useCountdown";
 
 export default function BookingDetailPage() {
   const { ref } = useParams<{ ref: string }>();
@@ -28,6 +29,8 @@ export default function BookingDetailPage() {
   if (!booking) return <AuthGuard><div className="max-w-4xl mx-auto px-4 py-16 text-center"><p className="text-gray-500">Booking not found</p></div></AuthGuard>;
 
   const isCancellable = ["confirmed", "pending"].includes(booking.status);
+  const showDeadline = booking.status === "pending" && booking.payment_method_hint === "pay_at_terminal" && booking.payment_deadline;
+  const countdown = useCountdown(showDeadline ? booking.payment_deadline : null);
 
   const handleCancel = () => {
     cancelMutation.mutate(
@@ -60,6 +63,28 @@ export default function BookingDetailPage() {
             </Button>
           )}
         </div>
+
+        {showDeadline && (
+          <div className={`rounded-xl border p-5 mb-6 ${countdown.isExpired ? "bg-gray-50 border-gray-200" : countdown.isUrgent ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Timer className={`h-5 w-5 ${countdown.isExpired ? "text-gray-500" : countdown.isUrgent ? "text-red-600" : "text-amber-700"}`} />
+              <span className={`text-sm font-semibold ${countdown.isExpired ? "text-gray-600" : countdown.isUrgent ? "text-red-700" : "text-amber-800"}`}>
+                {countdown.isExpired ? "This booking has expired" : countdown.isCritical ? "Hurry! Your booking expires soon" : "Pay at terminal before your booking expires"}
+              </span>
+            </div>
+            {!countdown.isExpired && (
+              <p className={`text-2xl font-bold tabular-nums ${countdown.isUrgent ? "text-red-700" : "text-amber-900"} ${countdown.isCritical ? "animate-pulse" : ""}`}>
+                {countdown.formatted}
+              </p>
+            )}
+            {!countdown.isExpired && booking.trip?.route?.origin_terminal?.name && (
+              <p className={`text-sm mt-2 ${countdown.isUrgent ? "text-red-600" : "text-amber-700"}`}>
+                <MapPin className="h-3.5 w-3.5 inline mr-1" />
+                Pay at {booking.trip.route.origin_terminal.name}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">

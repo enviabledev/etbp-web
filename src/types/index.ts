@@ -183,6 +183,8 @@ export interface Booking {
   promo_code: string | null;
   promo_discount: number;
   payment_method: string;
+  payment_method_hint?: string | null;
+  payment_deadline?: string | null;
   created_at: string;
   updated_at: string;
 }

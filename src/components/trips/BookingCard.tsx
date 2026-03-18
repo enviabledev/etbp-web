@@ -6,6 +6,7 @@ import { Calendar, Clock, Users, Hash, MapPin } from "lucide-react";
 import { cn, formatCurrency, formatDate, formatTime, STATUS_COLORS } from "@/lib/utils";
 import api from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import { useCountdown } from "@/hooks/useCountdown";
 import type { BookingDetail, BookingStatus } from "@/types";
 
 interface BookingCardProps {
@@ -44,6 +45,8 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
 
   const bookingRef = booking.booking_reference || booking.reference;
   const status = booking.status;
+  const showDeadline = status === "pending" && booking.payment_method_hint === "pay_at_terminal" && booking.payment_deadline;
+  const countdown = useCountdown(showDeadline ? booking.payment_deadline : null);
   const passenger_count = booking.passenger_count;
   const total_amount = booking.total_amount;
   const currency = booking.currency;
@@ -87,7 +90,17 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
             {origin} &rarr; {destination}
           </span>
         </div>
-        <StatusBadge status={status} />
+        <div className="flex items-center gap-2">
+          {showDeadline && (
+            <span className={cn(
+              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+              countdown.isExpired ? "bg-gray-100 text-gray-600" : countdown.isUrgent ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+            )}>
+              {countdown.shortFormatted}
+            </span>
+          )}
+          <StatusBadge status={status} />
+        </div>
       </div>
 
       {/* Details grid */}
