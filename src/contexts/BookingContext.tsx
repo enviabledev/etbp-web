@@ -141,12 +141,17 @@ const STORAGE_KEY = "etbp_booking_state";
 export function BookingProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(bookingReducer, INITIAL_STATE);
 
-  // Hydrate from sessionStorage on mount
+  // Hydrate from sessionStorage on mount — clear stale state
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed: BookingState = JSON.parse(stored);
+        // Clear stale booking state if lock has expired
+        if (parsed.lockExpiresAt && new Date(parsed.lockExpiresAt).getTime() < Date.now()) {
+          sessionStorage.removeItem(STORAGE_KEY);
+          return;
+        }
         dispatch({ type: "HYDRATE", payload: parsed });
       }
     } catch {

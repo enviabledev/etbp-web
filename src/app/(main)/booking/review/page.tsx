@@ -56,29 +56,27 @@ export default function BookingReviewPage() {
     setIsProcessing(true);
 
     try {
-      // Step 1: Create booking
-      let ref = bookingReference;
-      if (!ref) {
-        const bookingData = {
-          trip_id: selectedTrip.id,
-          passengers: passengers.map((p: any, idx: number) => ({
-            seat_id: selectedSeats[idx]?.id,
-            first_name: p.first_name,
-            last_name: p.last_name,
-            gender: p.gender || undefined,
-            phone: p.phone || undefined,
-            is_primary: idx === 0,
-          })),
-          contact_email: contactInfo?.email || user?.email,
-          contact_phone: contactInfo?.phone || user?.phone,
-          emergency_contact_name: contactInfo?.emergency_name || undefined,
-          emergency_contact_phone: contactInfo?.emergency_phone || undefined,
-        };
+      // Step 1: Create booking (always create fresh — never reuse stale references)
+      const bookingData = {
+        trip_id: selectedTrip.id,
+        passengers: passengers.map((p: any, idx: number) => ({
+          seat_id: selectedSeats[idx]?.id,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          gender: p.gender || undefined,
+          phone: p.phone || undefined,
+          is_primary: idx === 0,
+        })),
+        contact_email: contactInfo?.email || user?.email,
+        contact_phone: contactInfo?.phone || user?.phone,
+        emergency_contact_name: contactInfo?.emergency_name || undefined,
+        emergency_contact_phone: contactInfo?.emergency_phone || undefined,
+        payment_method: paymentMethod,
+      };
 
-        const booking: any = await createBooking.mutateAsync(bookingData as any);
-        ref = booking.reference || booking.booking_reference;
-        setBookingRef(ref!);
-      }
+      const booking: any = await createBooking.mutateAsync(bookingData as any);
+      const ref = booking.reference || booking.booking_reference;
+      setBookingRef(ref!);
 
       // Step 2: Process payment
       if (paymentMethod === "card") {
