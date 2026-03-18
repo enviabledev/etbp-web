@@ -8,11 +8,11 @@ import ETicket from "@/components/trips/ETicket";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { useBookingDetail, useCancelBooking } from "@/hooks/queries/useBookings";
+import { useBookingDetail, useCancelBooking, useTransferBooking, useAddLuggage } from "@/hooks/queries/useBookings";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
-  ArrowLeft, Calendar, Clock, Users, Mail, Phone, AlertTriangle, XCircle, MapPin, DollarSign, Timer,
+  ArrowLeft, Calendar, Clock, Users, Mail, Phone, AlertTriangle, XCircle, MapPin, DollarSign, Timer, RefreshCw, Send, Package,
 } from "lucide-react";
 import { useCountdown } from "@/hooks/useCountdown";
 
@@ -21,9 +21,18 @@ export default function BookingDetailPage() {
   const toast = useToast();
   const [showCancel, setShowCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [showLuggage, setShowLuggage] = useState(false);
+  const [transferPhone, setTransferPhone] = useState("");
+  const [transferName, setTransferName] = useState("");
+  const [transferEmail, setTransferEmail] = useState("");
+  const [luggageQty, setLuggageQty] = useState(1);
+  const [luggageMethod, setLuggageMethod] = useState("wallet");
 
   const { data: booking, isLoading } = useBookingDetail(ref);
   const cancelMutation = useCancelBooking();
+  const transferMutation = useTransferBooking();
+  const luggageMutation = useAddLuggage();
 
   const showDeadline = !isLoading && booking?.status === "pending" && booking?.payment_method_hint === "pay_at_terminal" && booking?.payment_deadline;
   const countdown = useCountdown(showDeadline ? booking!.payment_deadline : null);
@@ -32,6 +41,12 @@ export default function BookingDetailPage() {
   if (!booking) return <AuthGuard><div className="max-w-4xl mx-auto px-4 py-16 text-center"><p className="text-gray-500">Booking not found</p></div></AuthGuard>;
 
   const isCancellable = ["confirmed", "pending"].includes(booking.status);
+  const isConfirmed = booking.status === "confirmed";
+  const tripInFuture = booking.trip ? new Date(`${booking.trip.departure_date}T${booking.trip.departure_time}`) > new Date() : false;
+  const canReschedule = isConfirmed && tripInFuture;
+  const hoursUntil = booking.trip ? (new Date(`${booking.trip.departure_date}T${booking.trip.departure_time}`).getTime() - Date.now()) / 3600000 : 0;
+  const canTransfer = isConfirmed && hoursUntil > 2 && !booking.transferred_from_user_id;
+  const canAddLuggage = (isConfirmed || booking.status === "checked_in") && tripInFuture;
 
   const handleCancel = () => {
     cancelMutation.mutate(
@@ -143,6 +158,30 @@ export default function BookingDetailPage() {
           <div><ETicket booking={booking} /></div>
         </div>
 
+        {/* Actions */}
+        {(canReschedule || canTransfer || canAddLuggage) && (
+          <div className="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+            <h2 className="font-semibold text-gray-900 mb-4">Actions</h2>
+            <div className="flex flex-wrap gap-3">
+              {canReschedule && (
+                <Link href={`/my-trips/${ref}/reschedule`}>
+                  <Button variant="secondary"><RefreshCw className="h-4 w-4 mr-2" /> Reschedule</Button>
+                </Link>
+              )}
+              {canTransfer && (
+                <Button variant="secondary" onClick={() => setShowTransfer(true)}>
+                  <Send className="h-4 w-4 mr-2" /> Transfer Ticket
+                </Button>
+              )}
+              {canAddLuggage && (
+                <Button variant="secondary" onClick={() => setShowLuggage(true)}>
+                  <Package className="h-4 w-4 mr-2" /> Add Extra Luggage
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
         {showCancel && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowCancel(false)} />
@@ -163,6 +202,88 @@ export default function BookingDetailPage() {
               <div className="flex justify-end gap-3">
                 <Button variant="secondary" onClick={() => setShowCancel(false)}>Keep Booking</Button>
                 <Button variant="danger" onClick={handleCancel} loading={cancelMutation.isPending}>Cancel Booking</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showTransfer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setShowTransfer(false)} />
+            <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+              <h3 className="text-lg font-semibold mb-4">Transfer Ticket</h3>
+              <p className="text-sm text-gray-500 mb-4">Transfer this booking to another person. This cannot be undone.</p>
+              <div className="space-y-3">
+                <input value={transferName} onChange={e => setTransferName(e.target.value)} placeholder="Recipient full name" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                <input value={transferPhone} onChange={e => setTransferPhone(e.target.value)} placeholder="Recipient phone (e.g., +234...)" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                <input value={transferEmail} onChange={e => setTransferEmail(e.target.value)} placeholder="Recipient email (optional)" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="secondary" onClick={() => setShowTransfer(false)}>Cancel</Button>
+                <Button
+                  loading={transferMutation.isPending}
+                  onClick={() => {
+                    if (!transferName.trim() || !transferPhone.trim()) { toast.error("Name and phone are required"); return; }
+                    transferMutation.mutate(
+                      { ref, recipient_name: transferName, recipient_phone: transferPhone, recipient_email: transferEmail || undefined },
+                      {
+                        onSuccess: () => { setShowTransfer(false); toast.success("Booking transferred successfully"); },
+                        onError: (e: any) => toast.error(e?.response?.data?.detail || "Transfer failed"),
+                      }
+                    );
+                  }}
+                >
+                  Transfer
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showLuggage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setShowLuggage(false)} />
+            <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+              <h3 className="text-lg font-semibold mb-4">Add Extra Luggage</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Number of extra bags</label>
+                  <select value={luggageQty} onChange={e => setLuggageQty(Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                    {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} bag{n > 1 ? "s" : ""}</option>)}
+                  </select>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-sm text-gray-600">Price per bag: <span className="font-bold">{formatCurrency(2000)}</span></p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">Total: {formatCurrency(2000 * luggageQty)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Payment method</label>
+                  <div className="flex gap-3">
+                    {["wallet", "card"].map(m => (
+                      <label key={m} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm ${luggageMethod === m ? "border-blue-500 bg-blue-50" : "border-gray-200"}`}>
+                        <input type="radio" name="luggage_method" value={m} checked={luggageMethod === m} onChange={() => setLuggageMethod(m)} className="accent-blue-600" />
+                        {m === "wallet" ? "Wallet" : "Card"}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="secondary" onClick={() => setShowLuggage(false)}>Cancel</Button>
+                <Button
+                  loading={luggageMutation.isPending}
+                  onClick={() => {
+                    luggageMutation.mutate(
+                      { ref, quantity: luggageQty, payment_method: luggageMethod },
+                      {
+                        onSuccess: () => { setShowLuggage(false); toast.success("Extra luggage added!"); },
+                        onError: (e: any) => toast.error(e?.response?.data?.detail || "Failed to add luggage"),
+                      }
+                    );
+                  }}
+                >
+                  Add Luggage
+                </Button>
               </div>
             </div>
           </div>

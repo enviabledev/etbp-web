@@ -156,3 +156,49 @@ export function usePayWithWallet() {
     },
   });
 }
+
+// ── Reschedule / Transfer / Luggage ─────────────────────────
+
+export function useRescheduleOptions(ref: string, enabled = false) {
+  return useQuery({
+    queryKey: ["reschedule-options", ref],
+    queryFn: async () => {
+      const { data } = await api.get(`/api/v1/bookings/${ref}/reschedule-options`);
+      return data;
+    },
+    enabled,
+  });
+}
+
+export function useRescheduleBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ ref, ...body }: { ref: string; new_trip_id: string; new_seat_ids: string[] }) => {
+      const { data } = await api.put(`/api/v1/bookings/${ref}/reschedule`, body);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+}
+
+export function useTransferBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ ref, ...body }: { ref: string; recipient_phone: string; recipient_name: string; recipient_email?: string }) => {
+      const { data } = await api.post(`/api/v1/bookings/${ref}/transfer`, body);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+}
+
+export function useAddLuggage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ ref, ...body }: { ref: string; quantity: number; payment_method: string }) => {
+      const { data } = await api.post(`/api/v1/bookings/${ref}/add-luggage`, body);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+}

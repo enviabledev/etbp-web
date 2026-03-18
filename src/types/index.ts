@@ -148,9 +148,11 @@ export interface SeatMapResponse {
 export type BookingStatus =
   | "pending"
   | "confirmed"
+  | "checked_in"
   | "cancelled"
   | "completed"
   | "expired"
+  | "no_show"
   | "refunded";
 
 export interface BookingPassenger {
@@ -215,6 +217,10 @@ export interface BookingDetail extends Booking {
   cancelled_at?: string | null;
   checked_in_at?: string | null;
   special_requests?: string | null;
+  transferred_from_user_id?: string | null;
+  transferred_at?: string | null;
+  rescheduled_from_trip_id?: string | null;
+  rescheduled_at?: string | null;
 }
 
 // ── Payment ──────────────────────────────────────────────────
