@@ -8,11 +8,11 @@ import ETicket from "@/components/trips/ETicket";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { useBookingDetail, useCancelBooking, useTransferBooking, useAddLuggage } from "@/hooks/queries/useBookings";
+import { useBookingDetail, useCancelBooking, useTransferBooking, useAddLuggage, useBookingReview, useSubmitReview } from "@/hooks/queries/useBookings";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
-  ArrowLeft, Calendar, Clock, Users, Mail, Phone, AlertTriangle, XCircle, MapPin, DollarSign, Timer, RefreshCw, Send, Package,
+  ArrowLeft, Calendar, Clock, Users, Mail, Phone, AlertTriangle, XCircle, MapPin, DollarSign, Timer, RefreshCw, Send, Package, Star,
 } from "lucide-react";
 import { useCountdown } from "@/hooks/useCountdown";
 
@@ -33,6 +33,16 @@ export default function BookingDetailPage() {
   const cancelMutation = useCancelBooking();
   const transferMutation = useTransferBooking();
   const luggageMutation = useAddLuggage();
+  const { data: existingReview } = useBookingReview(ref);
+  const submitReview = useSubmitReview();
+  const [showReview, setShowReview] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [driverRating, setDriverRating] = useState(0);
+  const [busRating, setBusRating] = useState(0);
+  const [punctualityRating, setPunctualityRating] = useState(0);
+  const [comfortRating, setComfortRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewAnonymous, setReviewAnonymous] = useState(false);
 
   const showDeadline = !isLoading && booking?.status === "pending" && booking?.payment_method_hint === "pay_at_terminal" && booking?.payment_deadline;
   const countdown = useCountdown(showDeadline ? booking!.payment_deadline : null);
@@ -182,6 +192,35 @@ export default function BookingDetailPage() {
           </div>
         )}
 
+        {/* Review */}
+        {(booking.status === "completed" || (booking.status === "checked_in" && booking.trip?.status === "completed")) && !existingReview && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mt-6">
+            <h2 className="font-semibold text-amber-900 mb-2">Rate Your Trip</h2>
+            <p className="text-sm text-amber-700 mb-4">How was your experience? Your feedback helps us improve.</p>
+            <Button onClick={() => setShowReview(true)}>
+              <Star className="h-4 w-4 mr-2" /> Write a Review
+            </Button>
+          </div>
+        )}
+
+        {existingReview && (
+          <div className="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+            <h2 className="font-semibold text-gray-900 mb-3">Your Review</h2>
+            <div className="flex items-center gap-1 mb-2">
+              {[1,2,3,4,5].map(s => (
+                <Star key={s} className={`h-5 w-5 ${s <= existingReview.overall_rating ? "text-amber-400 fill-amber-400" : "text-gray-300"}`} />
+              ))}
+            </div>
+            {existingReview.comment && <p className="text-sm text-gray-600">{existingReview.comment}</p>}
+            {existingReview.admin_response && (
+              <div className="mt-3 bg-blue-50 rounded-lg p-3">
+                <p className="text-xs font-medium text-blue-700">Response from Enviable Transport:</p>
+                <p className="text-sm text-blue-600">{existingReview.admin_response}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {showCancel && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowCancel(false)} />
@@ -283,6 +322,80 @@ export default function BookingDetailPage() {
                   }}
                 >
                   Add Luggage
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showReview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setShowReview(false)} />
+            <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold mb-4">Rate Your Trip</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Overall Rating *</label>
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(s => (
+                      <button key={s} onClick={() => setReviewRating(s)} className="p-1">
+                        <Star className={`h-8 w-8 ${s <= reviewRating ? "text-amber-400 fill-amber-400" : "text-gray-300"}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "Driver", value: driverRating, set: setDriverRating },
+                    { label: "Bus Condition", value: busRating, set: setBusRating },
+                    { label: "Punctuality", value: punctualityRating, set: setPunctualityRating },
+                    { label: "Comfort", value: comfortRating, set: setComfortRating },
+                  ].map(cat => (
+                    <div key={cat.label}>
+                      <p className="text-xs text-gray-500 mb-1">{cat.label}</p>
+                      <div className="flex gap-0.5">
+                        {[1,2,3,4,5].map(s => (
+                          <button key={s} onClick={() => cat.set(s)} className="p-0.5">
+                            <Star className={`h-4 w-4 ${s <= cat.value ? "text-amber-400 fill-amber-400" : "text-gray-300"}`} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value.slice(0, 500))} placeholder="Tell us about your experience (optional)" rows={3} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                <p className="text-xs text-gray-400">{reviewComment.length}/500</p>
+
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={reviewAnonymous} onChange={e => setReviewAnonymous(e.target.checked)} className="rounded" />
+                  Submit anonymously
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="secondary" onClick={() => setShowReview(false)}>Cancel</Button>
+                <Button
+                  disabled={reviewRating === 0}
+                  loading={submitReview.isPending}
+                  onClick={() => {
+                    submitReview.mutate({
+                      ref, overall_rating: reviewRating,
+                      driver_rating: driverRating || undefined,
+                      bus_condition_rating: busRating || undefined,
+                      punctuality_rating: punctualityRating || undefined,
+                      comfort_rating: comfortRating || undefined,
+                      comment: reviewComment || undefined,
+                      is_anonymous: reviewAnonymous,
+                    }, {
+                      onSuccess: () => { setShowReview(false); toast.success("Review submitted!"); },
+                      onError: (e: any) => toast.error(e?.response?.data?.detail || "Failed to submit review"),
+                    });
+                  }}
+                >
+                  Submit Review
                 </Button>
               </div>
             </div>

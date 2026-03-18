@@ -202,3 +202,31 @@ export function useAddLuggage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
   });
 }
+
+// ── Reviews ─────────────────────────────────────────────────
+
+export function useBookingReview(ref: string) {
+  return useQuery({
+    queryKey: ["booking-review", ref],
+    queryFn: async () => {
+      const { data } = await api.get(`/api/v1/reviews/booking/${ref}`);
+      return data;
+    },
+    enabled: !!ref,
+    retry: false,
+  });
+}
+
+export function useSubmitReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ ref, ...body }: { ref: string; overall_rating: number; driver_rating?: number; bus_condition_rating?: number; punctuality_rating?: number; comfort_rating?: number; comment?: string; is_anonymous?: boolean }) => {
+      const { data } = await api.post(`/api/v1/reviews/booking/${ref}`, body);
+      return data;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["booking-review", vars.ref] });
+      qc.invalidateQueries({ queryKey: ["booking-detail"] });
+    },
+  });
+}
