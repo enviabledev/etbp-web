@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import AuthGuard from "@/components/layout/AuthGuard";
+import AddToCalendarButton from "@/components/booking/AddToCalendarButton";
+
+const RouteMap = dynamic(() => import("@/components/booking/RouteMap"), { ssr: false });
 import ETicket from "@/components/trips/ETicket";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -83,11 +87,21 @@ export default function BookingDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900">Booking {booking.reference}</h1>
             <div className="mt-2"><Badge status={booking.status} /></div>
           </div>
-          {isCancellable && (
-            <Button variant="danger" onClick={() => setShowCancel(true)}>
-              <XCircle className="h-4 w-4 mr-2" /> Cancel Booking
-            </Button>
-          )}
+          <div className="flex items-center gap-3">
+            {(booking.status === "confirmed" || booking.status === "checked_in") && booking.trip && (
+              <AddToCalendarButton
+                bookingRef={booking.booking_reference || booking.reference}
+                tripDate={booking.trip.departure_date}
+                tripTime={booking.trip.departure_time}
+                routeName={booking.trip.route?.name}
+              />
+            )}
+            {isCancellable && (
+              <Button variant="danger" onClick={() => setShowCancel(true)}>
+                <XCircle className="h-4 w-4 mr-2" /> Cancel Booking
+              </Button>
+            )}
+          </div>
         </div>
 
         {showDeadline && (
@@ -124,6 +138,19 @@ export default function BookingDetailPage() {
                 <div className="flex items-center gap-2"><Users className="h-4 w-4 text-gray-400" /><div><p className="text-gray-500">Passengers</p><p className="font-medium">{booking.passenger_count}</p></div></div>
               </div>
             </div>
+
+            {/* Route Map */}
+            {booking.trip?.route?.origin_terminal?.latitude && booking.trip?.route?.destination_terminal?.latitude && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="font-semibold text-gray-900 mb-4">Route Map</h2>
+                <RouteMap
+                  origin={booking.trip.route.origin_terminal as any}
+                  destination={booking.trip.route.destination_terminal as any}
+                  distanceKm={null}
+                  durationMinutes={null}
+                />
+              </div>
+            )}
 
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="font-semibold text-gray-900 mb-4">Passengers</h2>

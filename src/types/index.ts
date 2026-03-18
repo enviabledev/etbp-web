@@ -201,8 +201,8 @@ export interface BookingTrip {
     id?: string;
     name?: string;
     code?: string;
-    origin_terminal?: { id?: string; name?: string; code?: string; city: string; state?: string };
-    destination_terminal?: { id?: string; name?: string; code?: string; city: string; state?: string };
+    origin_terminal?: { id?: string; name?: string; code?: string; city: string; state?: string; address?: string; latitude?: number | null; longitude?: number | null };
+    destination_terminal?: { id?: string; name?: string; code?: string; city: string; state?: string; address?: string; latitude?: number | null; longitude?: number | null };
   };
   vehicle_type?: { name: string } | null;
 }
