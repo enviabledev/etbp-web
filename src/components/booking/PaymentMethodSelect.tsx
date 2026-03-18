@@ -8,14 +8,16 @@ import { cn } from "@/lib/utils";
 
 interface PaymentMethodSelectProps {
   selected: string | null;
-  onSelect: (method: "card" | "wallet" | "terminal") => void;
+  onSelect: (method: "card" | "wallet" | "terminal" | "corporate") => void;
   totalAmount: number;
+  corporateAccount?: { company_name: string; available_credit: number } | null;
 }
 
 export default function PaymentMethodSelect({
   selected,
   onSelect,
   totalAmount,
+  corporateAccount,
 }: PaymentMethodSelectProps) {
   const { data: wallet, isLoading: walletLoading } = useWallet();
 
@@ -53,6 +55,16 @@ export default function PaymentMethodSelect({
       disabled: false,
       extra: null,
     },
+    ...(corporateAccount ? [{
+      id: "corporate" as const,
+      label: "Bill to Company",
+      description: corporateAccount.available_credit >= totalAmount
+        ? `${corporateAccount.company_name} — ${formatCurrency(corporateAccount.available_credit)} available`
+        : `Insufficient corporate credit (${formatCurrency(corporateAccount.available_credit)})`,
+      icon: Building2,
+      disabled: corporateAccount.available_credit < totalAmount,
+      extra: null,
+    }] : []),
   ];
 
   return (
