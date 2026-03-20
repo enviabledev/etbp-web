@@ -24,7 +24,8 @@ export default function SocialLoginButtons({
       const result = await googleSignIn(credentialResponse.credential);
       // Cookies are now set — force full page navigation to re-initialize auth state
       // router.push won't work because AuthContext's enabled:checkAuth() was false at mount
-      window.location.href = result.is_new_user ? "/profile" : redirectTo;
+      // Always redirect to the booking flow if there's a pending redirect, even for new users
+      window.location.href = redirectTo !== "/" ? redirectTo : (result.is_new_user ? "/profile" : "/");
     } catch (e: unknown) {
       const msg =
         (e as Record<string, Record<string, Record<string, string>>>)?.response
