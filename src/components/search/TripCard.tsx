@@ -103,9 +103,33 @@ export default function TripCard({ trip }: TripCardProps) {
 
         {/* Right — price & button */}
         <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-center sm:min-w-[140px]">
-          <p className="text-2xl font-bold text-[#1E293B]">
-            {formatCurrency(trip.price)}
-          </p>
+          <div className="flex flex-col items-end gap-0.5">
+            {trip.final_price != null && trip.final_price !== trip.price ? (
+              <>
+                <span className="line-through text-gray-400 text-sm">
+                  {formatCurrency(trip.price)}
+                </span>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-[#1E293B]">
+                    {formatCurrency(trip.final_price)}
+                  </p>
+                  {trip.final_price > trip.price ? (
+                    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                      Peak
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                      Discount
+                    </span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="text-2xl font-bold text-[#1E293B]">
+                {formatCurrency(trip.price)}
+              </p>
+            )}
+          </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
