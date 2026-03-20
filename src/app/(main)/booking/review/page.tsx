@@ -23,7 +23,7 @@ export default function BookingReviewPage() {
   const { user } = useAuth();
   const {
     selectedTrip, selectedSeats, passengers, contactInfo, paymentMethod, lockExpiresAt, promoDiscount,
-    setPaymentMethod, setBookingRef,
+    setPaymentMethod, setBookingRef, reset,
   } = useBooking();
 
   const createBooking = useCreateBooking();
@@ -34,6 +34,19 @@ export default function BookingReviewPage() {
   if (!selectedTrip || selectedSeats.length === 0) {
     router.push("/");
     return null;
+  }
+
+  // Check if seat reservation has expired
+  if (lockExpiresAt && new Date(lockExpiresAt).getTime() < Date.now()) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Booking Session Expired</h2>
+        <p className="text-gray-500 mb-6">Your seat reservation has expired. Please start a new search.</p>
+        <div className="flex gap-3 justify-center">
+          <Button onClick={() => { reset(); router.push("/"); }}>Search Again</Button>
+        </div>
+      </div>
+    );
   }
 
   const baseTotal = selectedSeats.reduce(
