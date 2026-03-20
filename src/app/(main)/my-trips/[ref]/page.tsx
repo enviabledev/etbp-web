@@ -13,6 +13,8 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useBookingDetail, useCancelBooking, useCancelPreview, useTransferBooking, useAddLuggage, useBookingReview, useSubmitReview } from "@/hooks/queries/useBookings";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
@@ -38,6 +40,11 @@ export default function BookingDetailPage() {
   const cancelPreview = useCancelPreview(ref);
   const transferMutation = useTransferBooking();
   const luggageMutation = useAddLuggage();
+  const { data: addons } = useQuery({
+    queryKey: ["booking-addons", ref],
+    queryFn: async () => { const { data } = await api.get(`/api/v1/bookings/${ref}/addons`); return data; },
+    enabled: !!ref && !!booking,
+  });
   const { data: existingReview } = useBookingReview(ref);
   const submitReview = useSubmitReview();
   const [showReview, setShowReview] = useState(false);
@@ -184,6 +191,26 @@ export default function BookingDetailPage() {
                 <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-gray-400" /><span>{booking.contact_phone || "—"}</span></div>
               </div>
             </div>
+
+            {addons && addons.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="font-semibold text-gray-900 mb-4">Add-ons</h2>
+                {addons.map((addon: Record<string, string | number>, i: number) => (
+                  <div key={i} className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm font-medium">{addon.quantity} Extra Bag{(addon.quantity as number) > 1 ? "s" : ""}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{formatCurrency(addon.total_price as number)}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${addon.status === "paid" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
+                        {addon.status === "paid" ? "Paid" : "Pending"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {booking.status === "cancelled" && booking.cancellation_reason && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-6">
