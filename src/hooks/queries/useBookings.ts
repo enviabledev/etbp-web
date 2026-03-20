@@ -28,13 +28,16 @@ interface CreateBookingPayload {
 }
 
 interface ApplyPromoPayload {
-  booking_reference: string;
-  promo_code: string;
+  code: string;
+  trip_id: string;
+  amount: number;
 }
 
 interface ApplyPromoResponse {
+  valid: boolean;
   discount: number;
-  message: string;
+  reason?: string;
+  message?: string;
 }
 
 interface InitiatePaymentPayload {
@@ -120,13 +123,21 @@ export function useCancelBooking() {
 
 export function useApplyPromo() {
   return useMutation<ApplyPromoResponse, Error, ApplyPromoPayload>({
-    mutationFn: async ({ booking_reference, promo_code }) => {
-      const { data } = await api.post(
-        `/api/v1/bookings/${booking_reference}/apply-promo`,
-        { promo_code }
-      );
+    mutationFn: async ({ code, trip_id, amount }) => {
+      const { data } = await api.post('/api/v1/promo/validate', { code, trip_id, amount });
       return data;
     },
+  });
+}
+
+export function useCancelPreview(ref: string) {
+  return useQuery({
+    queryKey: ["cancel-preview", ref],
+    queryFn: async () => {
+      const { data } = await api.get(`/api/v1/bookings/${ref}/cancel-preview`);
+      return data;
+    },
+    enabled: false, // only fetch on demand
   });
 }
 

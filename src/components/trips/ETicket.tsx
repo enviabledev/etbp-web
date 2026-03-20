@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Download, Ticket } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { formatDate, formatTime } from "@/lib/utils";
 import api from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
@@ -69,22 +70,10 @@ export default function ETicket({ booking }: ETicketProps) {
           </p>
         </div>
 
-        {/* QR Code Placeholder */}
+        {/* QR Code */}
         <div className="flex justify-center mb-6">
-          <div className="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50">
-            <div className="grid grid-cols-5 gap-1 mb-3">
-              {Array.from({ length: 25 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-3 h-3 rounded-sm ${
-                    Math.random() > 0.4 ? "bg-[#1E293B]" : "bg-gray-200"
-                  }`}
-                />
-              ))}
-            </div>
-            <p className="text-[10px] font-mono text-gray-400 px-2 text-center break-all">
-              {qrCodeData}
-            </p>
+          <div className="p-4 bg-white rounded-lg border border-gray-200">
+            <QRCodeSVG value={qrCodeData} size={160} />
           </div>
         </div>
 

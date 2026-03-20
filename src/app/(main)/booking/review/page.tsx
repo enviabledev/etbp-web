@@ -22,7 +22,7 @@ export default function BookingReviewPage() {
   const toast = useToast();
   const { user } = useAuth();
   const {
-    selectedTrip, selectedSeats, passengers, contactInfo, paymentMethod, lockExpiresAt, promoDiscount, bookingReference,
+    selectedTrip, selectedSeats, passengers, contactInfo, paymentMethod, lockExpiresAt, promoDiscount,
     setPaymentMethod, setBookingRef,
   } = useBooking();
 
@@ -153,7 +153,7 @@ export default function BookingReviewPage() {
           {/* Promo Code */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="font-semibold text-gray-900 mb-4">Promo Code</h2>
-            <PromoCodeInput bookingReference={bookingReference || ""} />
+            <PromoCodeInput tripId={selectedTrip.id} amount={baseTotal} />
           </div>
 
           {/* Payment Method */}

@@ -7,11 +7,13 @@ import { formatCurrency } from "@/lib/utils";
 import { Tag, Loader2, X } from "lucide-react";
 
 interface PromoCodeInputProps {
-  bookingReference: string;
+  tripId: string;
+  amount: number;
 }
 
 export default function PromoCodeInput({
-  bookingReference,
+  tripId,
+  amount,
 }: PromoCodeInputProps) {
   const [code, setCode] = useState("");
   const { promoCode, promoDiscount, setPromo } = useBooking();
@@ -22,10 +24,17 @@ export default function PromoCodeInput({
 
     try {
       const result = await applyPromo.mutateAsync({
-        booking_reference: bookingReference,
-        promo_code: code.trim().toUpperCase(),
+        code: code.trim().toUpperCase(),
+        trip_id: tripId,
+        amount,
       });
-      setPromo(code.trim().toUpperCase(), result.discount);
+      if (result.valid) {
+        setPromo(code.trim().toUpperCase(), result.discount);
+      } else {
+        // Show the reason via the error display below
+        applyPromo.reset();
+        throw new Error(result.reason || "Promo code is not valid");
+      }
     } catch {
       // Error is handled via applyPromo.error
     }
@@ -103,6 +112,7 @@ export default function PromoCodeInput({
       {applyPromo.isError && (
         <p className="text-sm text-[#DC2626] mt-2">
           {(applyPromo.error as any)?.response?.data?.detail ||
+            (applyPromo.error as any)?.message ||
             "Invalid promo code. Please try again."}
         </p>
       )}

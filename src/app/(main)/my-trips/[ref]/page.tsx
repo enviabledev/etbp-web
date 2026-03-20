@@ -12,7 +12,7 @@ import ETicket from "@/components/trips/ETicket";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { useBookingDetail, useCancelBooking, useTransferBooking, useAddLuggage, useBookingReview, useSubmitReview } from "@/hooks/queries/useBookings";
+import { useBookingDetail, useCancelBooking, useCancelPreview, useTransferBooking, useAddLuggage, useBookingReview, useSubmitReview } from "@/hooks/queries/useBookings";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
@@ -35,6 +35,7 @@ export default function BookingDetailPage() {
 
   const { data: booking, isLoading } = useBookingDetail(ref);
   const cancelMutation = useCancelBooking();
+  const cancelPreview = useCancelPreview(ref);
   const transferMutation = useTransferBooking();
   const luggageMutation = useAddLuggage();
   const { data: existingReview } = useBookingReview(ref);
@@ -97,7 +98,7 @@ export default function BookingDetailPage() {
               />
             )}
             {isCancellable && (
-              <Button variant="danger" onClick={() => setShowCancel(true)}>
+              <Button variant="danger" onClick={() => { setShowCancel(true); cancelPreview.refetch(); }}>
                 <XCircle className="h-4 w-4 mr-2" /> Cancel Booking
               </Button>
             )}
@@ -257,12 +258,28 @@ export default function BookingDetailPage() {
                 <div><h3 className="text-lg font-semibold">Cancel Booking</h3><p className="text-sm text-gray-500">This cannot be undone.</p></div>
               </div>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 text-sm">
-                <p className="font-medium text-amber-800 mb-2">Refund Policy:</p>
-                <ul className="text-amber-700 space-y-1 text-xs">
-                  <li>&gt;24h before departure: <strong>90% refund</strong></li>
-                  <li>12-24h: <strong>50% refund</strong></li>
-                  <li>&lt;12h: <strong>No refund</strong></li>
-                </ul>
+                {cancelPreview.isFetching ? (
+                  <p className="text-amber-700">Loading refund details...</p>
+                ) : cancelPreview.data ? (
+                  <>
+                    <p className="font-medium text-amber-800 mb-2">Refund Details:</p>
+                    <div className="text-amber-700 space-y-1 text-xs">
+                      <p>Booking amount: <strong>{formatCurrency(cancelPreview.data.total_amount)}</strong></p>
+                      <p>Refund percentage: <strong>{cancelPreview.data.refund_percentage}%</strong></p>
+                      <p>Refund amount: <strong>{formatCurrency(cancelPreview.data.refund_amount)}</strong></p>
+                      {cancelPreview.data.reason && <p className="mt-1 text-amber-600">{cancelPreview.data.reason}</p>}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium text-amber-800 mb-2">Refund Policy:</p>
+                    <ul className="text-amber-700 space-y-1 text-xs">
+                      <li>&gt;24h before departure: <strong>90% refund</strong></li>
+                      <li>12-24h: <strong>50% refund</strong></li>
+                      <li>&lt;12h: <strong>No refund</strong></li>
+                    </ul>
+                  </>
+                )}
               </div>
               <textarea value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="Reason (optional)" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm mb-4" rows={3} />
               <div className="flex justify-end gap-3">
