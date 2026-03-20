@@ -86,6 +86,7 @@ export const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   booked:      { bg: "bg-gray-200",   text: "text-gray-600" },
   locked:      { bg: "bg-amber-100",  text: "text-amber-700" },
   maintenance: { bg: "bg-red-50",     text: "text-red-600" },
+  checked_in:  { bg: "bg-teal-100",   text: "text-teal-700" },
   no_show:     { bg: "bg-orange-100", text: "text-orange-700" },
 
   // Fallback
