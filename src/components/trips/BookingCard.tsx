@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Calendar, Clock, Users, Hash, MapPin } from "lucide-react";
+import { Calendar, Clock, Users, Hash, MapPin, Luggage } from "lucide-react";
 import { cn, formatCurrency, formatDate, formatTime, STATUS_COLORS } from "@/lib/utils";
 import api from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
@@ -130,9 +130,17 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
 
       {/* Footer: Amount + Actions */}
       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <p className="text-lg font-bold text-[#1E293B]">
-          {formatCurrency(total_amount, currency)}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-lg font-bold text-[#1E293B]">
+            {formatCurrency(total_amount, currency)}
+          </p>
+          {(booking.extra_luggage_count ?? 0) > 0 && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+              <Luggage className="h-3 w-3" />
+              {booking.extra_luggage_count} bag{(booking.extra_luggage_count ?? 0) > 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           {isCancellable && (

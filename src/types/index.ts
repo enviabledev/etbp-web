@@ -187,6 +187,7 @@ export interface Booking {
   payment_method: string;
   payment_method_hint?: string | null;
   payment_deadline?: string | null;
+  extra_luggage_count?: number;
   created_at: string;
   updated_at: string;
 }
