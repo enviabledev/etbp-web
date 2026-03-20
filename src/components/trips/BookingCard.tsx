@@ -42,6 +42,7 @@ function StatusBadge({ status }: { status: BookingStatus }) {
 export default function BookingCard({ booking, onCancelled }: BookingCardProps) {
   const toast = useToast();
   const [cancelling, setCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const bookingRef = booking.booking_reference || booking.reference;
   const status = booking.status;
@@ -60,12 +61,12 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
   const isCancellable =
     isUpcoming && (status === "confirmed" || status === "pending");
 
-  async function handleCancel() {
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this booking? Refund policy applies based on time until departure."
-    );
-    if (!confirmed) return;
+  function handleCancel() {
+    setShowCancelConfirm(true);
+  }
 
+  async function performCancel() {
+    setShowCancelConfirm(false);
     setCancelling(true);
     try {
       await api.put(`/api/v1/bookings/${bookingRef}/cancel`, { reason: null });
@@ -151,6 +152,18 @@ export default function BookingCard({ booking, onCancelled }: BookingCardProps) 
           </Link>
         </div>
       </div>
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold mb-2">Cancel Booking?</h3>
+            <p className="text-sm text-gray-600 mb-4">Are you sure you want to cancel this booking? Refund policy applies based on time until departure.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowCancelConfirm(false)} className="px-4 py-2 border rounded-lg text-sm">Keep Booking</button>
+              <button onClick={performCancel} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm">Cancel Booking</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { useBooking } from "@/contexts/BookingContext";
 import { useBookingDetail } from "@/hooks/queries/useBookings";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
 import api from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
 import BookingSteps from "@/components/booking/BookingSteps";
 import {
   CheckCircle2,
@@ -30,6 +31,7 @@ export default function ConfirmationPage() {
   const booking = useBooking();
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const toast = useToast();
 
   // Get booking reference from context or URL
   const ref = booking.bookingReference || searchParams.get("ref") || null;
@@ -81,7 +83,7 @@ export default function ConfirmationPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch {
-      alert("Failed to download ticket. Please try again.");
+      toast.error("Failed to download ticket. Please try again.");
     } finally {
       setDownloading(false);
     }
