@@ -1,8 +1,6 @@
 "use client";
 
 import { GoogleLogin } from "@react-oauth/google";
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { googleSignIn } from "@/lib/social-auth";
 import { useState } from "react";
 
@@ -15,8 +13,6 @@ export default function SocialLoginButtons({
   redirectTo = "/",
   onError,
 }: SocialLoginButtonsProps) {
-  const router = useRouter();
-  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSuccess = async (credentialResponse: {
@@ -26,13 +22,9 @@ export default function SocialLoginButtons({
     setLoading(true);
     try {
       const result = await googleSignIn(credentialResponse.credential);
-      // Invalidate the auth query so AuthContext picks up the new user
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      if (result.is_new_user) {
-        router.push("/profile");
-      } else {
-        router.push(redirectTo);
-      }
+      // Cookies are now set — force full page navigation to re-initialize auth state
+      // router.push won't work because AuthContext's enabled:checkAuth() was false at mount
+      window.location.href = result.is_new_user ? "/profile" : redirectTo;
     } catch (e: unknown) {
       const msg =
         (e as Record<string, Record<string, Record<string, string>>>)?.response
