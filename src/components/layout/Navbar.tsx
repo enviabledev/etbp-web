@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bus, Menu, X, ChevronDown, User, Wallet, LogOut, Ticket } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { googleLogout } from "@react-oauth/google";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -31,6 +32,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
+    googleLogout();
     logout();
     setDropdownOpen(false);
     setMobileOpen(false);

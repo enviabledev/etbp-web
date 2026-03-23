@@ -47,6 +47,17 @@ export async function logout(): Promise<void> {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
   }
+
+  // Clear Google's cached account selection so the picker shows next time
+  try {
+    const w = window as unknown as Record<string, unknown>;
+    const google = w.google as
+      | { accounts?: { id?: { disableAutoSelect?: () => void } } }
+      | undefined;
+    google?.accounts?.id?.disableAutoSelect?.();
+  } catch {
+    // Google SDK may not be loaded
+  }
 }
 
 export async function getMe(): Promise<User> {

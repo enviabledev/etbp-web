@@ -51,6 +51,7 @@ export default function SocialLoginButtons({
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
           onError={() => onError?.("Google sign-in failed")}
+          auto_select={false}
           size="large"
           width="100%"
           text="continue_with"
