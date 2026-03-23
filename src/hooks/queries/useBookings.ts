@@ -206,7 +206,7 @@ export function useTransferBooking() {
 export function useAddLuggage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ ref, ...body }: { ref: string; quantity: number; payment_method: string }) => {
+    mutationFn: async ({ ref, ...body }: { ref: string; quantity: number; payment_method: string; callback_url?: string }) => {
       const { data } = await api.post(`/api/v1/bookings/${ref}/add-luggage`, body);
       return data;
     },

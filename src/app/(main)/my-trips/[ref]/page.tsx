@@ -384,9 +384,21 @@ export default function BookingDetailPage() {
                   loading={luggageMutation.isPending}
                   onClick={() => {
                     luggageMutation.mutate(
-                      { ref, quantity: luggageQty, payment_method: luggageMethod },
                       {
-                        onSuccess: () => { setShowLuggage(false); toast.success("Extra luggage added!"); },
+                        ref,
+                        quantity: luggageQty,
+                        payment_method: luggageMethod,
+                        ...(luggageMethod === "card" ? { callback_url: `${window.location.origin}/my-trips/${ref}` } : {}),
+                      },
+                      {
+                        onSuccess: (data) => {
+                          if (luggageMethod === "card" && data?.payment_url) {
+                            window.location.href = data.payment_url;
+                          } else {
+                            setShowLuggage(false);
+                            toast.success("Extra luggage added!");
+                          }
+                        },
                         onError: (e: any) => toast.error(e?.response?.data?.detail || "Failed to add luggage"),
                       }
                     );
